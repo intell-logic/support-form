@@ -35,26 +35,53 @@
         .header {
             text-align: center;
             margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            opacity: 0.9;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .header-logo:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
         }
 
         .header h1 {
             color: #2d3748;
             font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            line-height: 1.1;
         }
 
         .header p {
             color: #718096;
             font-size: 1.1rem;
+            margin: 0;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             position: relative;
         }
 
@@ -89,6 +116,57 @@
             background: #fff;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
             transform: translateY(-2px);
+        }
+
+        .form-group input.error,
+        .form-group select.error,
+        .form-group textarea.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .form-group input.error:focus,
+        .form-group select.error:focus,
+        .form-group textarea.error:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-group input.success,
+        .form-group select.success,
+        .form-group textarea.success {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .error-message {
+            display: block;
+            color: #ef4444;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 6px;
+            margin-left: 2px;
+            line-height: 1.3;
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+
+        .error-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .error-message::before {
+            content: "⚠️ ";
+            margin-right: 4px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         .form-group textarea {
@@ -214,8 +292,23 @@
                 margin: 10px;
             }
             
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header-content {
+                align-items: center;
+                text-align: center;
+            }
+            
             .header h1 {
                 font-size: 2rem;
+            }
+            
+            .header-logo {
+                width: 50px;
+                height: 50px;
             }
         }
 
@@ -232,8 +325,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎫 Sistema de Tickets</h1>
-            <p>Describe tu problema y nuestro equipo te ayudará</p>
+            <img src="/assets/img/logo.png" alt="Logo" class="header-logo">
+            <div class="header-content">
+                <h1>🎫 Sistema de Tickets</h1>
+                <p>Describe tu problema y nuestro equipo te ayudará</p>
+            </div>
         </div>
 
         <div id="successMessage" class="success-message">
@@ -247,28 +343,31 @@
         <form id="ticketForm">
             <div class="form-group">
                 <label for="titulo">🏷️ Título del Ticket</label>
-                <input type="text" id="titulo" name="titulo" required placeholder="Ej: Problema con la aplicación móvil">
+                <input type="text" id="titulo" name="titulo" placeholder="Ej: Problema con la aplicación móvil">
+                <span class="error-message" id="titulo-error">El título es obligatorio y debe tener al menos 5 caracteres</span>
             </div>
 
             <div class="form-group">
                 <label for="descripcion">📝 Descripción Detallada</label>
-                <textarea id="descripcion" name="descripcion" required placeholder="Describe tu problema con el mayor detalle posible. Incluye pasos para reproducir el error si es aplicable."></textarea>
+                <textarea id="descripcion" name="descripcion" placeholder="Describe tu problema con el mayor detalle posible. Incluye pasos para reproducir el error si es aplicable."></textarea>
+                <span class="error-message" id="descripcion-error">La descripción es obligatoria y debe tener al menos 20 caracteres</span>
             </div>
 
             <div class="form-group">
                 <label for="prioridad">🚨 Prioridad</label>
-                <select id="prioridad" name="prioridad" required>
+                <select id="prioridad" name="prioridad">
                     <option value="">Selecciona una prioridad</option>
                     <option value="baja">🟢 Baja - No es urgente</option>
                     <option value="media">🟡 Media - Necesita atención</option>
                     <option value="alta">🟠 Alta - Requiere pronta solución</option>
                     <option value="urgente">🔴 Urgente - Crítico para el negocio</option>
                 </select>
+                <span class="error-message" id="prioridad-error">Debes seleccionar una prioridad</span>
             </div>
 
             <div class="form-group">
                 <label for="etiqueta">🏷️ Tipo de Ticket</label>
-                <select id="etiqueta" name="etiqueta" required>
+                <select id="etiqueta" name="etiqueta">
                     <option value="">Selecciona el tipo</option>
                     <option value="bug">🐛 Error/Bug</option>
                     <option value="feature">✨ Nueva Funcionalidad</option>
@@ -279,6 +378,7 @@
                     <option value="rendimiento">⚡ Rendimiento</option>
                     <option value="otro">📌 Otro</option>
                 </select>
+                <span class="error-message" id="etiqueta-error">Debes seleccionar un tipo de ticket</span>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">
@@ -323,10 +423,90 @@
 
         document.getElementById('prioridad').addEventListener('change', updatePriorityDisplay);
 
-        // Función para limpiar mensajes
-        function clearMessages() {
-            successMessage.style.display = 'none';
-            errorMessage.style.display = 'none';
+        // Configuración de validaciones personalizadas
+        const validationRules = {
+            titulo: {
+                required: true,
+                minLength: 5,
+                message: 'El título es obligatorio y debe tener al menos 5 caracteres'
+            },
+            descripcion: {
+                required: true,
+                minLength: 20,
+                message: 'La descripción es obligatoria y debe tener al menos 20 caracteres'
+            },
+            prioridad: {
+                required: true,
+                message: 'Debes seleccionar una prioridad'
+            },
+            etiqueta: {
+                required: true,
+                message: 'Debes seleccionar un tipo de ticket'
+            }
+        };
+
+        // Función para mostrar error de validación
+        function showFieldError(fieldName, message) {
+            const field = document.getElementById(fieldName);
+            const errorElement = document.getElementById(`${fieldName}-error`);
+            
+            field.classList.add('error');
+            field.classList.remove('success');
+            
+            if (message) {
+                errorElement.textContent = message;
+            }
+            errorElement.classList.add('show');
+        }
+
+        // Función para mostrar éxito de validación
+        function showFieldSuccess(fieldName) {
+            const field = document.getElementById(fieldName);
+            const errorElement = document.getElementById(`${fieldName}-error`);
+            
+            field.classList.remove('error');
+            field.classList.add('success');
+            errorElement.classList.remove('show');
+        }
+
+        // Función para validar un campo específico
+        function validateField(fieldName, value) {
+            const rules = validationRules[fieldName];
+            if (!rules) return true;
+
+            // Validar campo requerido
+            if (rules.required && (!value || value.trim().length === 0)) {
+                showFieldError(fieldName, rules.message);
+                return false;
+            }
+
+            // Validar longitud mínima
+            if (rules.minLength && value.trim().length < rules.minLength) {
+                showFieldError(fieldName, rules.message);
+                return false;
+            }
+
+            // Si llega aquí, la validación es exitosa
+            showFieldSuccess(fieldName);
+            return true;
+        }
+
+        // Función para validar todo el formulario
+        function validateForm() {
+            let isValid = true;
+            
+            // Obtener valores del formulario
+            const formData = new FormData(form);
+            
+            // Validar cada campo
+            Object.keys(validationRules).forEach(fieldName => {
+                const value = formData.get(fieldName) || '';
+                if (!validateField(fieldName, value)) {
+                    isValid = false;
+                }
+            });
+
+            return isValid;
         }
 
         // Función para mostrar estado de carga
@@ -399,6 +579,15 @@
             e.preventDefault();
             
             clearMessages();
+            
+            // Validar formulario antes de enviar
+            if (!validateForm()) {
+                errorMessage.textContent = '❌ Por favor, corrige los errores antes de continuar.';
+                errorMessage.style.display = 'block';
+                errorMessage.scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            
             setLoading(true);
 
             // Recopilar datos del formulario con estructura optimizada para n8n/ClickUp
@@ -473,6 +662,7 @@ ${formData.get('descripcion').trim()}
                 // Mostrar mensaje de éxito
                 successMessage.style.display = 'block';
                 form.reset();
+                clearValidationErrors();
                 updatePriorityDisplay();
                 
                 // Scroll al mensaje de éxito
@@ -487,20 +677,35 @@ ${formData.get('descripcion').trim()}
             }
         });
 
-        // Validación en tiempo real
+        // Validación en tiempo real mientras el usuario escribe/selecciona
         const inputs = form.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
+            // Validación en tiempo real mientras escribe (con debounce)
+            let validationTimeout;
+            input.addEventListener('input', function() {
+                clearTimeout(validationTimeout);
+                validationTimeout = setTimeout(() => {
+                    if (this.value.trim().length > 0) {
+                        validateField(this.name, this.value);
+                    }
+                }, 500); // Esperar 500ms después de que pare de escribir
+            });
+
+            // Validación inmediata al salir del campo
             input.addEventListener('blur', function() {
-                if (this.hasAttribute('required') && !this.value.trim()) {
-                    this.style.borderColor = '#ef4444';
-                } else {
-                    this.style.borderColor = '#e2e8f0';
+                if (validationRules[this.name]) {
+                    validateField(this.name, this.value);
                 }
             });
 
-            input.addEventListener('input', function() {
-                if (this.style.borderColor === 'rgb(239, 68, 68)' && this.value.trim()) {
-                    this.style.borderColor = '#e2e8f0';
+            // Limpiar errores al hacer focus si el campo tenía error
+            input.addEventListener('focus', function() {
+                if (this.classList.contains('error')) {
+                    this.classList.remove('error');
+                    const errorElement = document.getElementById(`${this.name}-error`);
+                    if (errorElement) {
+                        errorElement.classList.remove('show');
+                    }
                 }
             });
         });
