@@ -140,6 +140,22 @@
             background: #f0fdf4;
         }
 
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .form-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 50px;
+        }
+
         .error-message {
             display: block;
             color: #ef4444;
@@ -167,22 +183,6 @@
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 120px;
-            font-family: inherit;
-        }
-
-        .form-group select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 12px center;
-            background-repeat: no-repeat;
-            background-size: 16px;
-            padding-right: 50px;
         }
 
         .priority-badge {
@@ -246,7 +246,7 @@
             display: none;
         }
 
-        .error-message {
+        .error-message-global {
             background: #fecaca;
             border: 1px solid #f87171;
             color: #991b1b;
@@ -325,9 +325,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="/assets/img/logo.png" alt="Logo" class="header-logo">
+            <img src="./assets/img/logo.png" alt="Logo" class="header-logo">
             <div class="header-content">
-                <h1>🎫 Sistema de Tickets</h1>
+                <h1>Sistema de Tickets</h1>
                 <p>Describe tu problema y nuestro equipo te ayudará</p>
             </div>
         </div>
@@ -336,7 +336,7 @@
             ✅ Tu ticket ha sido enviado exitosamente. Te contactaremos pronto.
         </div>
 
-        <div id="errorMessage" class="error-message">
+        <div id="errorMessage" class="error-message-global">
             ❌ Error al enviar el ticket. Por favor, intenta nuevamente.
         </div>
 
@@ -404,25 +404,6 @@
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
 
-        // Función para mostrar badge de prioridad
-        function updatePriorityDisplay() {
-            const prioridadSelect = document.getElementById('prioridad');
-            const existingBadge = document.querySelector('.priority-badge');
-            
-            if (existingBadge) {
-                existingBadge.remove();
-            }
-
-            if (prioridadSelect.value) {
-                const badge = document.createElement('span');
-                badge.className = `priority-badge priority-${prioridadSelect.value}`;
-                badge.textContent = prioridadSelect.value;
-                prioridadSelect.parentNode.appendChild(badge);
-            }
-        }
-
-        document.getElementById('prioridad').addEventListener('change', updatePriorityDisplay);
-
         // Configuración de validaciones personalizadas
         const validationRules = {
             titulo: {
@@ -444,6 +425,25 @@
                 message: 'Debes seleccionar un tipo de ticket'
             }
         };
+
+        // Función para mostrar badge de prioridad
+        function updatePriorityDisplay() {
+            const prioridadSelect = document.getElementById('prioridad');
+            const existingBadge = document.querySelector('.priority-badge');
+            
+            if (existingBadge) {
+                existingBadge.remove();
+            }
+
+            if (prioridadSelect.value) {
+                const badge = document.createElement('span');
+                badge.className = `priority-badge priority-${prioridadSelect.value}`;
+                badge.textContent = prioridadSelect.value;
+                prioridadSelect.parentNode.appendChild(badge);
+            }
+        }
+
+        document.getElementById('prioridad').addEventListener('change', updatePriorityDisplay);
 
         // Función para mostrar error de validación
         function showFieldError(fieldName, message) {
@@ -507,6 +507,22 @@
             });
 
             return isValid;
+        }
+
+        // Función para limpiar mensajes
+        function clearMessages() {
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+        }
+
+        // Función para limpiar todos los errores de validación
+        function clearValidationErrors() {
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.classList.remove('show');
+            });
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.classList.remove('error', 'success');
+            });
         }
 
         // Función para mostrar estado de carga
