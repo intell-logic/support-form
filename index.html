@@ -321,6 +321,7 @@
             font-size: 1.2rem;
         }
     </style>
+    <script src="./api.js"></script>
 </head>
 <body>
     <div class="container">
@@ -543,51 +544,25 @@
             return `TICKET-${timestamp}-${random}`.toUpperCase();
         }
 
-        // Función para enviar datos a n8n
-        async function sendToN8N(ticketData) {
-            try {
-                if (DEBUG_MODE) {
-                    console.log('📤 Enviando datos a n8n:', ticketData);
-                    console.log('🔗 URL:', N8N_WEBHOOK_URL);
-                }
-
-                const response = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'User-Agent': 'Ticket-Form/1.0'
-                    },
-                    body: JSON.stringify(ticketData)
-                });
-
-                if (DEBUG_MODE) {
-                    console.log('📥 Respuesta HTTP status:', response.status);
-                }
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-
-                const result = await response.json();
-                
-                if (DEBUG_MODE) {
-                    console.log('✅ Respuesta de n8n:', result);
-                }
-                
-                return result;
-            } catch (error) {
-                console.error('❌ Error enviando a n8n:', error);
-                if (DEBUG_MODE) {
-                    console.error('📍 Detalles del error:', {
-                        message: error.message,
-                        url: N8N_WEBHOOK_URL,
-                        data: ticketData
-                    });
-                }
-                throw error;
+        // Función para enviar datos
+        async function sendViaGitHubActions(ticketData) {
+          try {
+            if (DEBUG_MODE) {
+              console.log('📤 Enviando vía GitHub Actions:', ticketData);
             }
+        
+            // Usar la API de GitHub para disparar el workflow
+            const result = await window.TicketAPI.sendTicket(ticketData);
+            
+            if (DEBUG_MODE) {
+              console.log('✅ Respuesta GitHub Actions:', result);
+            }
+            
+            return result;
+          } catch (error) {
+            console.error('❌ Error GitHub Actions:', error);
+            throw error;
+          }
         }
 
         // Manejador del formulario
@@ -673,7 +648,7 @@ ${formData.get('descripcion').trim()}
 
             try {
                 // Enviar a n8n
-                await sendToN8N(ticketData);
+                await sendViaGitHubActions(ticketData);
                 
                 // Mostrar mensaje de éxito
                 successMessage.style.display = 'block';
