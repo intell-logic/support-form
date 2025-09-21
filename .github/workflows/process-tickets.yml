@@ -48,9 +48,9 @@ jobs:
           - Plataforma: ${ticketData.cliente?.plataforma || 'N/A'}
           - Idioma: ${ticketData.cliente?.idioma || 'N/A'}
           - URL Origen: ${ticketData.cliente?.url || 'N/A'}
----
-*✨ Creado automáticamente vía GitHub Actions*
-*⏰ Procesado: ${new Date().toLocaleString('es-ES')}*`,
+          ---
+          *✨ Creado automáticamente vía GitHub Actions*
+          *⏰ Procesado: ${new Date().toLocaleString('es-ES')}*`,
             
             priority: priorityMap[ticketData.prioridad] || 3,
             status: 'to do',
@@ -92,10 +92,10 @@ jobs:
               issue_number: context.issue.number,
               body: `✅ **Ticket procesado exitosamente**
               
-🎫 **Ticket ID:** ${ticketData.id}
-📋 **ClickUp Task ID:** ${result.id}
-🔗 **Ver en ClickUp:** ${result.url}
-📅 **Procesado:** ${new Date().toLocaleString('es-ES')}`
+              🎫 **Ticket ID:** ${ticketData.id}
+              📋 **ClickUp Task ID:** ${result.id}
+              🔗 **Ver en ClickUp:** ${result.url}
+              📅 **Procesado:** ${new Date().toLocaleString('es-ES')}`
             });
           }
           
