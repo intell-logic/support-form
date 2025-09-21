@@ -393,9 +393,8 @@
     </div>
 
     <script>
-        // Configuración - Reemplaza con tu webhook URL de n8n
-        // Ejemplo: 'https://tu-n8n.app/webhook/tickets'
-        const N8N_WEBHOOK_URL = 'https://emendez25.app.n8n.cloud/webhook/dms/tickets';
+        // Configuración NETLIFY FUNCTIONS (segura y sin CORS)
+        const NETLIFY_FUNCTION_URL = 'https://support-form-dms.netlify.app/.netlify/functions/tickets';
         
         // Configuración adicional para debugging
         const DEBUG_MODE = true;
@@ -544,25 +543,52 @@
             return `TICKET-${timestamp}-${random}`.toUpperCase();
         }
 
-        // Función para enviar datos
-        async function sendViaGitHubActions(ticketData) {
-          try {
-            if (DEBUG_MODE) {
-              console.log('📤 Enviando vía GitHub Actions:', ticketData);
+        // Función para enviar datos vía Netlify Functions (MÁS SEGURA)
+        async function sendViaNetlify(ticketData) {
+            try {
+                if (DEBUG_MODE) {
+                    console.log('📤 Enviando vía Netlify Functions:', ticketData);
+                    console.log('🔗 URL:', NETLIFY_FUNCTION_URL);
+                }
+
+                const response = await fetch(NETLIFY_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'User-Agent': 'Ticket-Form/1.0'
+                    },
+                    body: JSON.stringify(ticketData)
+                });
+
+                if (DEBUG_MODE) {
+                    console.log('📥 Netlify status:', response.status);
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Netlify Error: ${response.status} - ${errorData}`);
+                }
+
+                const result = await response.json();
+                
+                if (DEBUG_MODE) {
+                    console.log('✅ Respuesta Netlify:', result);
+                }
+                
+                return result;
+
+            } catch (error) {
+                console.error('❌ Error Netlify:', error);
+                if (DEBUG_MODE) {
+                    console.error('📍 Detalles del error:', {
+                        message: error.message,
+                        url: NETLIFY_FUNCTION_URL,
+                        data: ticketData
+                    });
+                }
+                throw error;
             }
-        
-            // Usar la API de GitHub para disparar el workflow
-            const result = await window.TicketAPI.sendTicket(ticketData);
-            
-            if (DEBUG_MODE) {
-              console.log('✅ Respuesta GitHub Actions:', result);
-            }
-            
-            return result;
-          } catch (error) {
-            console.error('❌ Error GitHub Actions:', error);
-            throw error;
-          }
         }
 
         // Manejador del formulario
@@ -647,8 +673,8 @@ ${formData.get('descripcion').trim()}
             };
 
             try {
-                // Enviar a n8n
-                await sendViaGitHubActions(ticketData);
+                // Enviar vía Netlify Functions
+                await sendViaNetlify(ticketData);
                 
                 // Mostrar mensaje de éxito
                 successMessage.style.display = 'block';
@@ -661,6 +687,7 @@ ${formData.get('descripcion').trim()}
                 
             } catch (error) {
                 console.error('Error:', error);
+                errorMessage.textContent = '❌ Error al procesar el ticket. Por favor, intenta nuevamente.';
                 errorMessage.style.display = 'block';
                 errorMessage.scrollIntoView({ behavior: 'smooth' });
             } finally {
@@ -715,9 +742,19 @@ ${formData.get('descripcion').trim()}
         });
 
         // Log de configuración para debugging
-        console.log('📋 Formulario de Tickets Inicializado');
-        console.log('🔗 Webhook URL:', N8N_WEBHOOK_URL);
+        console.log('📋 Formulario de Tickets Inicializado - Netlify Functions');
+        console.log('🔗 Function URL:', NETLIFY_FUNCTION_URL);
+        console.log('🌍 Origin:', window.location.origin);
         console.log('📝 Campos disponibles: título, descripción, prioridad, etiqueta');
+        console.log('⚡ Procesamiento vía Netlify Functions → ClickUp');
+        
+        // Test de conectividad Netlify
+        if (DEBUG_MODE) {
+            console.log('🔍 Para probar Netlify Function, ejecuta en consola:');
+            console.log(`fetch('${NETLIFY_FUNCTION_URL}', {
+                method: 'OPTIONS'
+            }).then(r => r.json()).then(d => console.log('✅ Netlify OK:', d)).catch(e => console.error('❌ Error:', e))`);
+        }
     </script>
 </body>
 </html>
