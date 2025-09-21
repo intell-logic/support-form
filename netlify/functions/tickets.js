@@ -70,27 +70,19 @@ ${ticketData.descripcion}
 **🔍 Información Técnica:**
 - 🌐 User Agent: ${ticketData.cliente?.userAgent?.substring(0, 100) || 'N/A'}...
 - 🖥️ Plataforma: ${ticketData.cliente?.plataforma || 'N/A'}
-- 🗣️ Idioma: ${ticketData.cliente?.idioma || 'N/A'}
-- 🌍 URL Origen: ${ticketData.cliente?.url || 'N/A'}
 - 📄 Referrer: ${ticketData.cliente?.referrer || 'Directo'}
-
----
-*✨ Procesado automáticamente vía Netlify Functions*
-*⏰ Timestamp: ${new Date().toLocaleString('es-ES')}*`,
       
       // Mapear prioridad (ClickUp: 1=urgent, 4=low)
       priority: ticketData.prioridad === 'urgente' ? 1 :
                 ticketData.prioridad === 'alta' ? 2 :
                 ticketData.prioridad === 'media' ? 3 : 4,
       
-      status: 'FORM WEB',
+      status: 'TICKETS',
       
       tags: [
         'formulario-web',
         ticketData.etiqueta,
-        `prioridad-${ticketData.prioridad}`,
-        'netlify-functions',
-        'automatico'
+        `prioridad-${ticketData.prioridad}`
       ]
     };
 
