@@ -83,7 +83,7 @@ ${ticketData.descripcion}
                 ticketData.prioridad === 'alta' ? 2 :
                 ticketData.prioridad === 'media' ? 3 : 4,
       
-      status: 'to do',
+      status: 'FORM WEB',
       
       tags: [
         'formulario-web',
