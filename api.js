@@ -1,9 +1,9 @@
 // api.js - Añadir en la raíz de tu repositorio
 class TicketAPI {
   constructor() {
-    this.githubToken = 'TU_GITHUB_TOKEN_AQUI'; // Token público limitado
+    this.githubToken = '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'; // Token público limitado
     this.repoOwner = 'intell-logic';
-    this.repoName = 'tu-repo-name'; // Nombre de tu repositorio
+    this.repoName = 'support-form'; // Nombre de tu repositorio
   }
 
   async sendTicket(ticketData) {
