@@ -712,7 +712,7 @@
                     if (isAuthenticated) {
                         logout();
                     }
-                }, 500 * 60);
+                }, 500 * 60 * 60);
             } else {
                 errorDiv.textContent = 'Token inválido. Contacta al administrador.';
                 errorDiv.style.display = 'block';
