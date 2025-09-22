@@ -73,9 +73,16 @@ ${ticketData.descripcion}
 - 📄 Referrer: ${ticketData.cliente?.referrer || 'Directo'}
       
       // Mapear prioridad (ClickUp: 1=urgent, 4=low)
-      priority: ticketData.prioridad === 'urgente' ? 1 :
-                ticketData.prioridad === 'alta' ? 2 :
-                ticketData.prioridad === 'media' ? 3 : 4,
+      let priorityNumber = 3; // Default: media
+      if (ticketData.prioridad === 'urgente') {
+        priorityNumber = 1;
+      } else if (ticketData.prioridad === 'alta') {
+        priorityNumber = 2;
+      } else if (ticketData.prioridad === 'media') {
+        priorityNumber = 3;
+      } else if (ticketData.prioridad === 'baja') {
+        priorityNumber = 4;
+      }
       
       status: 'TICKETS',
       
