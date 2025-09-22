@@ -201,8 +201,7 @@ class TicketManager {
             const response = await this.fetchWithRetry(CONFIG.netlifyFunction, {
                 method: 'GET',
                 headers: {
-                    'Accept': 'application/json',
-                    'Cache-Control': 'no-cache'
+                    'Accept': 'application/json'
                 }
             });
 
