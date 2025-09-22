@@ -710,7 +710,7 @@
                 authenticateUser();
                 setInterval(() => {
                     if (isAuthenticated) {
-                        loadTickets();
+                        logout();
                     }
                 }, 5000);
             } else {
@@ -862,10 +862,10 @@
         // Funciones auxiliares del portal
         function getStatusClass(status) {
             const statusMap = {
-                'to do': 'status-todo',
-                'in progress': 'status-progress',
-                'done': 'status-done',
-                'closed': 'status-done'
+                'tickets': 'status-todo',
+                'en curso': 'status-progress',
+                'promovido': 'status-done',
+                'por revisar': 'status-todo'
             };
             return statusMap[status.toLowerCase()] || 'status-todo';
         }
@@ -882,10 +882,10 @@
 
         function getPriorityText(priority) {
             const priorityMap = {
-                1: 'Urgente',
-                2: 'Alta',
-                3: 'Media',
-                4: 'Baja'
+                'urgent': 'Urgente',
+                'high': 'Alta',
+                'normal': 'Media',
+                'low': 'Baja'
             };
             return priorityMap[priority] || 'Media';
         }
