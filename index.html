@@ -712,7 +712,7 @@
                     if (isAuthenticated) {
                         logout();
                     }
-                }, 500 * 60 * 60);
+                }, (1000 * 60) * 30);
             } else {
                 errorDiv.textContent = 'Token inválido. Contacta al administrador.';
                 errorDiv.style.display = 'block';
@@ -1187,9 +1187,8 @@
 
         // ========== INICIALIZACIÓN ==========
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎫 Portal Integrado inicializado');
+            console.log('🎫 Portal Tickets inicializado');
             console.log('🔐 Sistema de autenticación activado');
-            console.log('⚡ Netlify Functions configurado');
             
             initAuth();
             
