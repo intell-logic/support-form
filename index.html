@@ -89,7 +89,7 @@
 
         /* Main Container */
         .container {
-            max-width: 1200px;
+            max-width: 850px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -527,7 +527,7 @@
             <h2>🔐 Acceso al Portal</h2>
             <p>Ingresa tu token para acceder al sistema de tickets</p>
             <input 
-                type="text" 
+                type="password" 
                 id="tokenInput" 
                 class="token-input" 
                 placeholder="000000"
@@ -713,6 +713,7 @@
             if (CONFIG.validTokens.includes(token)) {
                 localStorage.setItem('ticketPortalToken', token);
                 errorDiv.style.display = 'none';
+                document.getElementById('tokenInput').value = '';
                 authenticateUser();
             } else {
                 errorDiv.textContent = 'Token inválido. Contacta al administrador.';
@@ -1131,8 +1132,8 @@
                 
                 // Recargar tickets para mostrar el nuevo
                 setTimeout(() => {
-                    loadTickets();
                     switchTab('portal');
+                    loadTickets();
                 }, 2000);
                 
             } catch (error) {
