@@ -708,6 +708,11 @@
                 errorDiv.style.display = 'none';
                 document.getElementById('tokenInput').value = '';
                 authenticateUser();
+                setInterval(() => {
+                    if (isAuthenticated) {
+                        loadTickets();
+                    }
+                }, 5000);
             } else {
                 errorDiv.textContent = 'Token inválido. Contacta al administrador.';
                 errorDiv.style.display = 'block';
