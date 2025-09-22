@@ -127,8 +127,6 @@ ${ticketData.descripcion}
 **🔍 Información Técnica:**
 - 🌐 User Agent: ${ticketData.cliente?.userAgent?.substring(0, 100) || 'N/A'}...
 - 🖥️ Plataforma: ${ticketData.cliente?.plataforma || 'N/A'}
-- 🗣️ Idioma: ${ticketData.cliente?.idioma || 'N/A'}
-- 🌍 URL Origen: ${ticketData.cliente?.url || 'N/A'}
 - 📄 Referrer: ${ticketData.cliente?.referrer || 'Directo'}
 
 ---
@@ -140,12 +138,11 @@ ${ticketData.descripcion}
         name: ticketData.titulo,
         description: descripcionFormateada,
         priority: priorityNumber,
-        status: 'to do',
+        status: 'TICKETS',
         tags: [
           'formulario-web',
           ticketData.etiqueta,
-          'prioridad-' + ticketData.prioridad,
-          'netlify-functions'
+          'prioridad-' + ticketData.prioridad
         ]
       };
 
