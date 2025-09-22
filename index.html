@@ -636,7 +636,7 @@
         const CONFIG = {
             netlifyFunction: 'https://support-form-dms.netlify.app/.netlify/functions/tickets',
             validTokens: ['123456', '654321', '99001199'], // Tokens válidos
-            debugMode: true
+            debugMode: false
         };
 
         // Estado global
@@ -668,7 +668,7 @@
 
         // ========== AUTENTICACIÓN ==========
         function initAuth() {
-            const savedToken = atob(localStorage.getItem('ticketPortalToken'));
+            const savedToken = atob(localStorage.getItem('ticketPortalTk'));
             if (savedToken && CONFIG.validTokens.includes(savedToken)) {
                 authenticateUser();
             } else {
@@ -693,7 +693,7 @@
         }
 
         function logout() {
-            localStorage.removeItem('ticketPortalToken');
+            localStorage.removeItem('ticketPortalTk');
             isAuthenticated = false;
             showAuthModal();
         }
@@ -704,7 +704,7 @@
             const errorDiv = document.getElementById('authError');
 
             if (CONFIG.validTokens.includes(token)) {
-                localStorage.setItem('ticketPortalToken', btoa(token));
+                localStorage.setItem('ticketPortalTk', btoa(token));
                 errorDiv.style.display = 'none';
                 document.getElementById('tokenInput').value = '';
                 authenticateUser();
@@ -712,7 +712,7 @@
                     if (isAuthenticated) {
                         logout();
                     }
-                }, 5000);
+                }, 500 * 60);
             } else {
                 errorDiv.textContent = 'Token inválido. Contacta al administrador.';
                 errorDiv.style.display = 'block';
