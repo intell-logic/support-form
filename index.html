@@ -523,7 +523,7 @@
     <!-- Auth Modal -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-modal">
-          <img src="./assets/img/logo.png" alt="Logo" style="width: 60px; height: 60px; object-fit: contain; opacity: 0.9; margin-bottom: 15px;">
+            <img src="./assets/img/logo.png" alt="Logo" style="width: 60px; height: 60px; object-fit: contain; opacity: 0.9; margin-bottom: 15px;">
             <h2>🔐 Acceso al Portal</h2>
             <p>Ingresa tu token para acceder al sistema de tickets</p>
             <input 
@@ -533,7 +533,6 @@
                 placeholder="000000"
                 maxlength="6"
                 pattern="[0-9]{15}"
-                autocomplete="off"
             >
             <button id="authBtn" class="auth-btn">Acceder</button>
             <div id="authError" class="auth-error" style="display: none;"></div>
@@ -636,8 +635,6 @@
         // Configuración
         const CONFIG = {
             netlifyFunction: 'https://support-form-dms.netlify.app/.netlify/functions/tickets',
-            clickupToken: 'pk_88024148_6FUY521GCBVNFQLAOQCF5TNNMHY1353I',
-            clickupListId: '901317031398',
             validTokens: ['123456', '654321', '99001199'], // Tokens válidos
             debugMode: true
         };
@@ -752,26 +749,34 @@
             try {
                 showLoading(true);
                 
-                const response = await fetch(`https://api.clickup.com/api/v2/list/${CONFIG.clickupListId}/task?include_closed=false`, {
+                // Usar GET request al backend para mayor seguridad
+                const response = await fetch(CONFIG.netlifyFunction, {
+                    method: 'GET',
                     headers: {
-                        'Authorization': CONFIG.clickupToken,
-                        'Content-Type': 'application/json'
+                        'Accept': 'application/json'
                     }
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Error ${response.status}: No se pudo conectar con ClickUp`);
+                    throw new Error(`Error ${response.status}: No se pudo obtener los tickets`);
                 }
 
                 const data = await response.json();
-                allTickets = data.tasks.filter(task => 
-                    task.tags && task.tags.some(tag => tag.name === 'formulario-web')
-                );
                 
+                if (!data.success) {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+
+                allTickets = data.tickets || [];
                 filteredTickets = [...allTickets];
                 displayTickets(filteredTickets);
                 
+                if (CONFIG.debugMode) {
+                    console.log(`✅ Loaded ${allTickets.length} tickets from backend`);
+                }
+                
             } catch (error) {
+                console.error('❌ Error loading tickets:', error);
                 showPortalError(`Error cargando tickets: ${error.message}`);
             } finally {
                 showLoading(false);
@@ -1055,13 +1060,6 @@
 
             } catch (error) {
                 console.error('❌ Error Netlify:', error);
-                if (CONFIG.debugMode) {
-                    console.error('📍 Detalles del error:', {
-                        message: error.message,
-                        url: NETLIFY_FUNCTION_URL,
-                        data: ticketData
-                    });
-                }
                 throw error;
             }
         }
@@ -1097,7 +1095,7 @@
                     hour: '2-digit',
                     minute: '2-digit'
                 }),
-                estado: 'Nuevo',
+                estado: 'nuevo',
                 origen: 'formulario-web',
                 cliente: {
                     userAgent: navigator.userAgent,
@@ -1114,9 +1112,10 @@
                     tags: [
                         'formulario-web',
                         formData.get('etiqueta'),
-                        `prioridad-${formData.get('prioridad')}`
+                        `prioridad-${formData.get('prioridad')}`,
+                        'sin-asignar'
                     ],
-                    estado_inicial: 'TICKETS'
+                    estado_inicial: 'to do'
                 }
             };
 
