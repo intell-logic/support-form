@@ -2,7 +2,7 @@
 const CONFIG = {
     netlifyFunction: 'https://support-form-dms.netlify.app/.netlify/functions/tickets',
     tokenEndpoint: '/api/validate-token', // Endpoint para validar tokens
-    sessionTimeout: 3, // minutos
+    sessionTimeout: 10, // minutos
     debugMode: false,
     retryAttempts: 3,
     retryDelay: 1000
