@@ -525,14 +525,15 @@
         <div class="auth-modal">
           <img src="./assets/img/logo.png" alt="Logo" style="width: 60px; height: 60px; object-fit: contain; opacity: 0.9; margin-bottom: 15px;">
             <h2>🔐 Acceso al Portal</h2>
-            <p>Ingresa tu token de 6 dígitos para acceder al sistema de tickets</p>
+            <p>Ingresa tu token para acceder al sistema de tickets</p>
             <input 
                 type="text" 
                 id="tokenInput" 
                 class="token-input" 
                 placeholder="000000"
                 maxlength="6"
-                pattern="[0-9]{6}"
+                pattern="[0-9]{15}"
+                autocomplete="off"
             >
             <button id="authBtn" class="auth-btn">Acceder</button>
             <div id="authError" class="auth-error" style="display: none;"></div>
@@ -637,7 +638,7 @@
             netlifyFunction: 'https://support-form-dms.netlify.app/.netlify/functions/tickets',
             clickupToken: 'pk_88024148_6FUY521GCBVNFQLAOQCF5TNNMHY1353I',
             clickupListId: '901317031398',
-            validTokens: ['123456', '654321', 'Intell123*'], // Tokens válidos
+            validTokens: ['123456', '654321', '99001199'], // Tokens válidos
             debugMode: true
         };
 
@@ -751,7 +752,7 @@
             try {
                 showLoading(true);
                 
-                const response = await fetch(`https://api.clickup.com/api/v2/list/${CONFIG.clickupListId}/task?include_closed=true`, {
+                const response = await fetch(`https://api.clickup.com/api/v2/list/${CONFIG.clickupListId}/task?include_closed=false`, {
                     headers: {
                         'Authorization': CONFIG.clickupToken,
                         'Content-Type': 'application/json'
@@ -1054,6 +1055,13 @@
 
             } catch (error) {
                 console.error('❌ Error Netlify:', error);
+                if (CONFIG.debugMode) {
+                    console.error('📍 Detalles del error:', {
+                        message: error.message,
+                        url: NETLIFY_FUNCTION_URL,
+                        data: ticketData
+                    });
+                }
                 throw error;
             }
         }
@@ -1089,7 +1097,7 @@
                     hour: '2-digit',
                     minute: '2-digit'
                 }),
-                estado: 'nuevo',
+                estado: 'Nuevo',
                 origen: 'formulario-web',
                 cliente: {
                     userAgent: navigator.userAgent,
@@ -1106,10 +1114,9 @@
                     tags: [
                         'formulario-web',
                         formData.get('etiqueta'),
-                        `prioridad-${formData.get('prioridad')}`,
-                        'sin-asignar'
+                        `prioridad-${formData.get('prioridad')}`
                     ],
-                    estado_inicial: 'to do'
+                    estado_inicial: 'TICKETS'
                 }
             };
 
