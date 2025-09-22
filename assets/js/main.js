@@ -1,14 +1,20 @@
-// Configuración
+// Configuración moderna
 const CONFIG = {
     netlifyFunction: 'https://support-form-dms.netlify.app/.netlify/functions/tickets',
-    validTokens: ['123456', '654321', '99001199'], // Tokens válidos
-    debugMode: false
+    tokenEndpoint: '/api/validate-token', // Endpoint para validar tokens
+    sessionTimeout: 3, // minutos
+    debugMode: false,
+    retryAttempts: 3,
+    retryDelay: 1000
 };
 
-// Estado global
-let allTickets = [];
-let filteredTickets = [];
-let isAuthenticated = false;
+// Estado global usando const para objetos mutables
+const AppState = {
+    allTickets: [],
+    filteredTickets: [],
+    isAuthenticated: false,
+    sessionTimeout: null
+};
 
 // Validaciones del formulario
 const validationRules = {
@@ -32,379 +38,365 @@ const validationRules = {
     }
 };
 
-// ========== AUTENTICACIÓN ==========
-function initAuth() {
-    const savedToken = atob(localStorage.getItem('ticketPortalTk'));
-    if (savedToken && CONFIG.validTokens.includes(savedToken)) {
+// ========== GESTIÓN DE TOKENS MODERNA ==========
+class TokenManager {
+    static STORAGE_KEY = btoa('ticketPortalSession');
+    static VALID_TOKENS = ['123456', '654321', '99001199']; // Temporal - mover a backend
+
+    static setToken(token, expirationMinutes = CONFIG.sessionTimeout) {
+        const expirationTime = Date.now() + (expirationMinutes * 60 * 1000);
+        const sessionData = {
+            token: btoa(token),
+            expiresAt: expirationTime,
+            createdAt: Date.now()
+        };
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(sessionData));
+        this.scheduleAutoLogout(expirationMinutes);
+    }
+
+    static getTokenData() {
+        try {
+            const data = localStorage.getItem(this.STORAGE_KEY);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            console.error('Error parsing token data:', error);
+            return null;
+        }
+    }
+
+    static isValid() {
+        const tokenData = this.getTokenData();
+        if (!tokenData) return false;
+
+        const isNotExpired = Date.now() < tokenData.expiresAt;
+        const isValidToken = this.VALID_TOKENS.includes(atob(tokenData.token));
+
+        return isNotExpired && isValidToken;
+    }
+
+    static getTimeRemaining() {
+        const tokenData = this.getTokenData();
+        if (!tokenData) return 0;
+
+        const remaining = tokenData.expiresAt - Date.now();
+        return Math.max(0, remaining);
+    }
+
+    static scheduleAutoLogout(minutes) {
+        if (AppState.sessionTimeout) {
+            clearTimeout(AppState.sessionTimeout);
+        }
+
+        AppState.sessionTimeout = setTimeout(() => {
+            this.logout('Sesión expirada por tiempo de inactividad');
+        }, minutes * 60 * 1000);
+    }
+
+    static logout(reason = 'Sesión cerrada manualmente') {
+        localStorage.removeItem(this.STORAGE_KEY);
+        if (AppState.sessionTimeout) {
+            clearTimeout(AppState.sessionTimeout);
+            AppState.sessionTimeout = null;
+        }
+        AppState.isAuthenticated = false;
+        AuthUI.showModal(reason);
+    }
+
+    static refreshSession() {
+        if (this.isValid()) {
+            const tokenData = this.getTokenData();
+            const currentToken = atob(tokenData.token);
+            this.setToken(currentToken, CONFIG.sessionTimeout);
+        }
+    }
+}
+
+// ========== MANEJO DE UI DE AUTENTICACIÓN ==========
+class AuthUI {
+    static showModal(message = null) {
+        const overlay = document.getElementById('authOverlay');
+        const container = document.getElementById('mainContainer');
+        const errorDiv = document.getElementById('authError');
+
+        overlay.style.display = 'flex';
+        container.classList.remove('show');
+
+        if (message) {
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        } else {
+            errorDiv.classList.add('hidden');
+        }
+    }
+
+    static hideModal() {
+        const overlay = document.getElementById('authOverlay');
+        const container = document.getElementById('mainContainer');
+
+        overlay.style.display = 'none';
+        container.classList.add('show');
+    }
+
+    static clearForm() {
+        document.getElementById('tokenInput').value = '';
+        document.getElementById('authError').classList.add('hidden');
+    }
+}
+
+// ========== INICIALIZACIÓN DE AUTENTICACIÓN ==========
+const initAuth = () => {
+    if (TokenManager.isValid()) {
         authenticateUser();
+        TokenManager.scheduleAutoLogout(CONFIG.sessionTimeout);
     } else {
-        showAuthModal();
+        AuthUI.showModal();
     }
-}
+};
 
-function showAuthModal() {
-    document.getElementById('authOverlay').style.display = 'flex';
-    document.getElementById('mainContainer').classList.remove('show');
-}
-
-function hideAuthModal() {
-    document.getElementById('authOverlay').style.display = 'none';
-    document.getElementById('mainContainer').classList.add('show');
-}
-
-function authenticateUser() {
-    isAuthenticated = true;
-    hideAuthModal();
+const authenticateUser = () => {
+    AppState.isAuthenticated = true;
+    AuthUI.hideModal();
     loadTickets();
-}
+};
 
-function logout() {
-    localStorage.removeItem('ticketPortalTk');
-    isAuthenticated = false;
-    showAuthModal();
-}
+const logout = (reason) => {
+    TokenManager.logout(reason);
+};
 
-// ========== NAVEGACIÓN ==========
-function switchTab(tabName) {
-    // Actualizar tabs
-    document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+// ========== NAVEGACIÓN MODERNA ==========
+class TabManager {
+    static switchTab(tabName, targetElement) {
+        // Remover clases activas (usar clases BEM)
+        document.querySelectorAll('.nav__tab').forEach(tab =>
+            tab.classList.remove('nav__tab--active')
+        );
+        document.querySelectorAll('.tab').forEach(content =>
+            content.classList.remove('tab--active')
+        );
 
-    event.target.classList.add('active');
-    document.getElementById(tabName + 'Tab').classList.add('active');
+        // Activar tab seleccionado (usar clases BEM)
+        targetElement.classList.add('nav__tab--active');
+        document.getElementById(`${tabName}Tab`).classList.add('tab--active');
 
-    // Limpiar formulario si se cambia a portal
-    if (tabName === 'portal') {
-        clearMessages();
+        // Limpiar mensajes al cambiar a portal
+        if (tabName === 'portal') {
+            MessageManager.clearMessages();
+        }
     }
 }
 
-// ========== PORTAL DE TICKETS ==========
-async function loadTickets() {
-    if (!isAuthenticated) return;
+// Función global para compatibilidad con HTML
+const switchTab = (tabName) => {
+    TabManager.switchTab(tabName, event.target);
+};
 
-    try {
-        showLoading(true);
+// ========== GESTIÓN DE TICKETS MODERNA ==========
+class TicketManager {
+    static async loadTickets() {
+        if (!AppState.isAuthenticated) return;
 
-        // Usar GET request al backend para mayor seguridad
-        const response = await fetch(CONFIG.netlifyFunction, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
+        try {
+            UIManager.showLoading(true);
+
+            const response = await this.fetchWithRetry(CONFIG.netlifyFunction, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: No se pudo obtener los tickets`);
             }
-        });
 
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: No se pudo obtener los tickets`);
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Error desconocido');
+            }
+
+            AppState.allTickets = data.tickets || [];
+            AppState.filteredTickets = [...AppState.allTickets];
+            this.displayTickets(AppState.filteredTickets);
+
+            if (CONFIG.debugMode) {
+                console.log(`✅ Loaded ${AppState.allTickets.length} tickets from backend`);
+            }
+
+        } catch (error) {
+            console.error('❌ Error loading tickets:', error);
+            UIManager.showPortalError(`Error cargando tickets: ${error.message}`);
+        } finally {
+            UIManager.showLoading(false);
         }
-
-        const data = await response.json();
-
-        if (!data.success) {
-            throw new Error(data.error || 'Error desconocido');
-        }
-
-        allTickets = data.tickets || [];
-        filteredTickets = [...allTickets];
-        displayTickets(filteredTickets);
-
-        if (CONFIG.debugMode) {
-            console.log(`✅ Loaded ${allTickets.length} tickets from backend`);
-        }
-
-    } catch (error) {
-        console.error('❌ Error loading tickets:', error);
-        showPortalError(`Error cargando tickets: ${error.message}`);
-    } finally {
-        showLoading(false);
-    }
-}
-
-function displayTickets(tickets) {
-    const container = document.getElementById('ticketsContainer');
-
-    if (tickets.length === 0) {
-        container.innerHTML = `
-            <div class="no-tickets">
-                <h3>No se encontraron tickets</h3>
-                <p>No hay solicitudes que coincidan con tu búsqueda.</p>
-            </div>
-        `;
-        return;
     }
 
-    container.innerHTML = tickets.map(ticket => {
-        const statusClass = getStatusClass(ticket.status.status);
-        const priorityClass = `priority-${ticket.priority?.priority || 4}`;
-        const priorityText = getPriorityText(ticket.priority?.priority);
-        const ticketId = extractTicketId(ticket.description);
+    static async fetchWithRetry(url, options, attempts = CONFIG.retryAttempts) {
+        for (let i = 0; i < attempts; i++) {
+            try {
+                const response = await fetch(url, options);
+                if (response.ok || i === attempts - 1) {
+                    return response;
+                }
+                throw new Error(`HTTP ${response.status}`);
+            } catch (error) {
+                if (i === attempts - 1) throw error;
+                await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelay * (i + 1)));
+            }
+        }
+    }
+
+    static displayTickets(tickets) {
+        const container = document.getElementById('ticketsContainer');
+
+        if (tickets.length === 0) {
+            container.innerHTML = `
+                <div class="portal__no-tickets">
+                    <h3>No se encontraron tickets</h3>
+                    <p>No hay solicitudes que coincidan con tu búsqueda.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = tickets.map(ticket => this.createTicketCard(ticket)).join('');
+    }
+
+    static createTicketCard(ticket) {
+        const {
+            statusClass = this.getStatusClass(ticket.status?.status),
+            priorityClass = `priority-${ticket.priority?.priority || 4}`,
+            priorityText = this.getPriorityText(ticket.priority?.priority),
+            ticketId = this.extractTicketId(ticket.description)
+        } = {};
 
         return `
             <div class="ticket-card">
-                <div class="ticket-header">
+                <div class="ticket-card__header">
                     <div>
-                        <div class="ticket-id">${ticketId || ticket.id}</div>
-                        <div class="ticket-title">${ticket.name}</div>
+                        <div class="ticket-card__id">${ticketId || ticket.id}</div>
+                        <div class="ticket-card__title">${ticket.name}</div>
                     </div>
-                    <div class="status-badge ${statusClass}">
-                        ${translateStatus(ticket.status.status)}
+                    <div class="status-badge status-badge--${statusClass}">
+                        ${this.translateStatus(ticket.status?.status)}
                     </div>
                 </div>
 
-                <div class="ticket-meta">
+                <div class="ticket-card__meta">
                     <div class="ticket-meta-item">
-                        📅 <span>${formatDate(ticket.date_created)}</span>
+                        <span class="ticket-meta-item__icon">📅</span>
+                        <span>${this.formatDate(ticket.date_created)}</span>
                     </div>
                     <div class="ticket-meta-item">
-                        🚨 <span class="priority-badge ${priorityClass}">${priorityText}</span>
+                        <span class="ticket-meta-item__icon">🚨</span>
+                        <span class="priority-badge priority-badge--${priorityClass}">${priorityText}</span>
                     </div>
-                    ${ticket.assignees && ticket.assignees.length > 0 ? `
+                    ${ticket.assignees?.length > 0 ? `
                         <div class="ticket-meta-item">
-                            👤 <span>${ticket.assignees[0].username}</span>
+                            <span class="ticket-meta-item__icon">👤</span>
+                            <span>${ticket.assignees[0].username}</span>
                         </div>
                     ` : ''}
                 </div>
 
-                <div class="ticket-description">
-                    ${formatDescription(ticket.description)}
+                <div class="ticket-card__description">
+                    ${this.formatDescription(ticket.description)}
                 </div>
 
-                <div class="ticket-tags">
+                <div class="ticket-card__tags">
                     ${ticket.tags.map(tag => `<span class="ticket-tag">${tag.name}</span>`).join('')}
                 </div>
             </div>
         `;
-    }).join('');
-}
+    }
 
-function searchTickets() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    static searchTickets() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-    if (!searchTerm) {
-        filteredTickets = [...allTickets];
-    } else {
-        filteredTickets = allTickets.filter(ticket => {
-            const ticketId = extractTicketId(ticket.description);
-            return (
-                ticket.name.toLowerCase().includes(searchTerm) ||
-                ticket.description.toLowerCase().includes(searchTerm) ||
-                (ticketId && ticketId.toLowerCase().includes(searchTerm))
-            );
+        if (!searchTerm) {
+            AppState.filteredTickets = [...AppState.allTickets];
+        } else {
+            AppState.filteredTickets = AppState.allTickets.filter(ticket => {
+                const ticketId = this.extractTicketId(ticket.description);
+                return (
+                    ticket.name.toLowerCase().includes(searchTerm) ||
+                    ticket.description.toLowerCase().includes(searchTerm) ||
+                    (ticketId && ticketId.toLowerCase().includes(searchTerm))
+                );
+            });
+        }
+
+        this.displayTickets(AppState.filteredTickets);
+    }
+
+    // Métodos auxiliares
+    static getStatusClass(status) {
+        const statusMap = {
+            'tickets': 'todo',
+            'en curso': 'progress',
+            'promovido': 'done',
+            'por revisar': 'todo'
+        };
+        return statusMap[status?.toLowerCase()] || 'todo';
+    }
+
+    static translateStatus(status) {
+        const statusMap = {
+            'to do': 'Pendiente',
+            'in progress': 'En Progreso',
+            'done': 'Completado',
+            'closed': 'Cerrado'
+        };
+        return statusMap[status?.toLowerCase()] || status;
+    }
+
+    static getPriorityText(priority) {
+        const priorityMap = {
+            'urgent': 'Urgente',
+            'high': 'Alta',
+            'normal': 'Media',
+            'low': 'Baja'
+        };
+        return priorityMap[priority] || 'Media';
+    }
+
+    static formatDate(dateString) {
+        return new Date(parseInt(dateString)).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     }
 
-    displayTickets(filteredTickets);
-}
-
-// Funciones auxiliares del portal
-function getStatusClass(status) {
-    const statusMap = {
-        'tickets': 'status-todo',
-        'en curso': 'status-progress',
-        'promovido': 'status-done',
-        'por revisar': 'status-todo'
-    };
-    return statusMap[status.toLowerCase()] || 'status-todo';
-}
-
-function translateStatus(status) {
-    const statusMap = {
-        'to do': 'Pendiente',
-        'in progress': 'En Progreso',
-        'done': 'Completado',
-        'closed': 'Cerrado'
-    };
-    return statusMap[status.toLowerCase()] || status;
-}
-
-function getPriorityText(priority) {
-    const priorityMap = {
-        'urgent': 'Urgente',
-        'high': 'Alta',
-        'normal': 'Media',
-        'low': 'Baja'
-    };
-    return priorityMap[priority] || 'Media';
-}
-
-function formatDate(dateString) {
-    return new Date(parseInt(dateString)).toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-function extractTicketId(description) {
-    const match = description.match(/Ticket ID:\*\* (TICKET-[^\n\s]+)/);
-    return match ? match[1] : null;
-}
-
-function formatDescription(description) {
-    const match = description.match(/\*\*📝 Descripción del Cliente:\*\*\s*([^*]+)/);
-    if (match) {
-        return match[1].trim().substring(0, 200) + '...';
+    static extractTicketId(description) {
+        const match = description.match(/Ticket ID:\*\* (TICKET-[^\n\s]+)/);
+        return match?.[1] || null;
     }
-    return description.substring(0, 200) + '...';
-}
 
-function showLoading(show) {
-    const loadingElement = document.getElementById('loadingMessage');
-    if (show) {
-        loadingElement.classList.remove('hidden');
-    } else {
-        loadingElement.classList.add('hidden');
+    static formatDescription(description) {
+        const match = description.match(/\*\*📝 Descripción del Cliente:\*\*\s*([^*]+)/);
+        if (match) {
+            return match[1].trim().substring(0, 200) + '...';
+        }
+        return description.substring(0, 200) + '...';
     }
 }
 
-function showPortalError(message) {
-    const errorElement = document.getElementById('portalError');
-    errorElement.textContent = message;
-    errorElement.classList.remove('hidden');
-}
+// Funciones globales para compatibilidad
+const loadTickets = () => TicketManager.loadTickets();
+const searchTickets = () => TicketManager.searchTickets();
+
 
 // ========== FORMULARIO DE TICKETS ==========
 
-// Funciones de validación
-function showFieldError(fieldName, message) {
-    const field = document.getElementById(fieldName);
-    const errorElement = document.getElementById(`${fieldName}-error`);
 
-    field.classList.add('error');
-    field.classList.remove('success');
 
-    if (message) {
-        errorElement.textContent = message;
-    }
-    errorElement.classList.add('show');
-}
 
-function showFieldSuccess(fieldName) {
-    const field = document.getElementById(fieldName);
-    const errorElement = document.getElementById(`${fieldName}-error`);
 
-    field.classList.remove('error');
-    field.classList.add('success');
-    errorElement.classList.remove('show');
-}
 
-function validateField(fieldName, value) {
-    const rules = validationRules[fieldName];
-    if (!rules) return true;
-
-    if (rules.required && (!value || value.trim().length === 0)) {
-        showFieldError(fieldName, rules.message);
-        return false;
-    }
-
-    if (rules.minLength && value.trim().length < rules.minLength) {
-        showFieldError(fieldName, rules.message);
-        return false;
-    }
-
-    showFieldSuccess(fieldName);
-    return true;
-}
-
-function validateForm() {
-    let isValid = true;
-    const formData = new FormData(document.getElementById('ticketForm'));
-
-    Object.keys(validationRules).forEach(fieldName => {
-        const value = formData.get(fieldName) || '';
-        if (!validateField(fieldName, value)) {
-            isValid = false;
-        }
-    });
-
-    return isValid;
-}
-
-function clearMessages() {
-    document.getElementById('successMessage').classList.add('hidden');
-    document.getElementById('errorMessage').classList.add('hidden');
-}
-
-function clearValidationErrors() {
-    document.querySelectorAll('.error-message').forEach(el => {
-        el.classList.remove('show');
-    });
-    document.querySelectorAll('input, select, textarea').forEach(el => {
-        el.classList.remove('error', 'success');
-    });
-}
-
-function showTemporaryMessage(element, duration = 5000) {
-    element.classList.remove('hidden');
-    element.scrollIntoView({ behavior: 'smooth' });
-
-    setTimeout(() => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(-20px)';
-        element.style.transition = 'all 0.5s ease';
-
-        setTimeout(() => {
-            element.classList.add('hidden');
-            element.style.opacity = '1';
-            element.style.transform = 'translateY(0)';
-            element.style.transition = '';
-        }, 500);
-    }, duration);
-}
-
-function setLoading(isLoading) {
-    const submitBtn = document.getElementById('submitBtn');
-    if (isLoading) {
-        submitBtn.innerHTML = '<span class="loading"></span>Enviando...';
-        submitBtn.disabled = true;
-    } else {
-        submitBtn.innerHTML = 'Crear Ticket';
-        submitBtn.disabled = false;
-    }
-}
-
-function generateTicketId() {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substr(2, 5);
-    return `TICKET-${timestamp}-${random}`.toUpperCase();
-}
-
-async function sendViaNetlify(ticketData) {
-    try {
-        if (CONFIG.debugMode) {
-            console.log('📤 Enviando vía Netlify Functions:', ticketData);
-        }
-
-        const response = await fetch(CONFIG.netlifyFunction, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'User-Agent': 'Ticket-Form/1.0'
-            },
-            body: JSON.stringify(ticketData)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`Error ${response.status}: ${errorData}`);
-        }
-
-        const result = await response.json();
-
-        if (CONFIG.debugMode) {
-            console.log('✅ Respuesta Netlify:', result);
-        }
-
-        return result;
-
-    } catch (error) {
-        console.error('❌ Error Netlify:', error);
-        throw error;
-    }
-}
 
 // ========== EVENT LISTENERS ==========
 
@@ -430,31 +422,201 @@ function initEventListeners() {
         }
     });
 
-    document.getElementById('tokenInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('authBtn').click();
+}
+
+// ========== GESTIÓN DE UI ==========
+class UIManager {
+    static showLoading(show) {
+        const loadingElement = document.getElementById('loadingMessage');
+        if (loadingElement) {
+            loadingElement.classList.toggle('hidden', !show);
         }
-    });
+    }
 
-    document.getElementById('logoutBtn').addEventListener('click', logout);
+    static showPortalError(message) {
+        const errorElement = document.getElementById('portalError');
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+    }
 
-    // Formulario
-    document.getElementById('ticketForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+    static setSubmitLoading(isLoading) {
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            if (isLoading) {
+                submitBtn.innerHTML = '<span class="loading"></span>Enviando...';
+                submitBtn.disabled = true;
+            } else {
+                submitBtn.innerHTML = 'Crear Ticket';
+                submitBtn.disabled = false;
+            }
+        }
+    }
+}
 
-        clearMessages();
+// ========== GESTIÓN DE MENSAJES ==========
+class MessageManager {
+    static clearMessages() {
+        const elements = ['successMessage', 'errorMessage'];
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.classList.add('hidden');
+            }
+        });
+    }
 
-        if (!validateForm()) {
-            document.getElementById('errorMessage').textContent = '❌ Por favor, corrige los errores antes de continuar.';
-            showTemporaryMessage(document.getElementById('errorMessage'), 5000);
-            return;
+    static showTemporaryMessage(element, duration = 5000) {
+        if (!element) return;
+
+        element.classList.remove('hidden');
+        element.scrollIntoView({ behavior: 'smooth' });
+
+        setTimeout(() => {
+            this.fadeOut(element);
+        }, duration);
+    }
+
+    static fadeOut(element) {
+        if (!element) return;
+
+        Object.assign(element.style, {
+            opacity: '0',
+            transform: 'translateY(-20px)',
+            transition: 'all 0.5s ease'
+        });
+
+        setTimeout(() => {
+            element.classList.add('hidden');
+            Object.assign(element.style, {
+                opacity: '1',
+                transform: 'translateY(0)',
+                transition: ''
+            });
+        }, 500);
+    }
+}
+
+// ========== VALIDACIÓN DE FORMULARIOS ==========
+class FormValidator {
+    static showFieldError(fieldName, message) {
+        const field = document.getElementById(fieldName);
+        const errorElement = document.getElementById(`${fieldName}-error`);
+
+        if (field) {
+            field.classList.add('form__input--error', 'form__select--error', 'form__textarea--error');
+            field.classList.remove('form__input--success', 'form__select--success', 'form__textarea--success');
         }
 
-        setLoading(true);
+        if (errorElement) {
+            if (message) {
+                errorElement.textContent = message;
+            }
+            errorElement.classList.add('form__error--show');
+        }
+    }
 
-        const formData = new FormData(e.target);
-        const ticketData = {
-            id: generateTicketId(),
+    static showFieldSuccess(fieldName) {
+        const field = document.getElementById(fieldName);
+        const errorElement = document.getElementById(`${fieldName}-error`);
+
+        if (field) {
+            field.classList.remove('form__input--error', 'form__select--error', 'form__textarea--error');
+            field.classList.add('form__input--success', 'form__select--success', 'form__textarea--success');
+        }
+
+        if (errorElement) {
+            errorElement.classList.remove('form__error--show');
+        }
+    }
+
+    static validateField(fieldName, value) {
+        const rules = validationRules[fieldName];
+        if (!rules) return true;
+
+        if (rules.required && (!value || value.trim().length === 0)) {
+            this.showFieldError(fieldName, rules.message);
+            return false;
+        }
+
+        if (rules.minLength && value.trim().length < rules.minLength) {
+            this.showFieldError(fieldName, rules.message);
+            return false;
+        }
+
+        this.showFieldSuccess(fieldName);
+        return true;
+    }
+
+    static validateForm() {
+        const formData = new FormData(document.getElementById('ticketForm'));
+
+        return Object.keys(validationRules).every(fieldName => {
+            const value = formData.get(fieldName) || '';
+            return this.validateField(fieldName, value);
+        });
+    }
+
+    static clearValidationErrors() {
+        document.querySelectorAll('.form__error').forEach(el =>
+            el.classList.remove('form__error--show')
+        );
+        document.querySelectorAll('.form__input, .form__select, .form__textarea').forEach(el => {
+            el.classList.remove(
+                'form__input--error', 'form__select--error', 'form__textarea--error',
+                'form__input--success', 'form__select--success', 'form__textarea--success'
+            );
+        });
+    }
+}
+
+// ========== GESTIÓN DE TICKETS (ENVIO) ==========
+class TicketSubmission {
+    static generateTicketId() {
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 5);
+        return `TICKET-${timestamp}-${random}`.toUpperCase();
+    }
+
+    static async sendViaNetlify(ticketData) {
+        try {
+            if (CONFIG.debugMode) {
+                console.log('📤 Enviando vía Netlify Functions:', ticketData);
+            }
+
+            const response = await TicketManager.fetchWithRetry(CONFIG.netlifyFunction, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'User-Agent': 'Ticket-Form/1.0'
+                },
+                body: JSON.stringify(ticketData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.text();
+                throw new Error(`Error ${response.status}: ${errorData}`);
+            }
+
+            const result = await response.json();
+
+            if (CONFIG.debugMode) {
+                console.log('✅ Respuesta Netlify:', result);
+            }
+
+            return result;
+
+        } catch (error) {
+            console.error('❌ Error Netlify:', error);
+            throw error;
+        }
+    }
+
+    static createTicketData(formData) {
+        return {
+            id: this.generateTicketId(),
             titulo: formData.get('titulo').trim(),
             descripcion: formData.get('descripcion').trim(),
             prioridad: formData.get('prioridad'),
@@ -478,9 +640,7 @@ function initEventListeners() {
                 referrer: document.referrer || 'directo'
             },
             clickupData: {
-                prioridad_numerica: formData.get('prioridad') === 'urgente' ? 1 :
-                                   formData.get('prioridad') === 'alta' ? 2 :
-                                   formData.get('prioridad') === 'media' ? 3 : 4,
+                prioridad_numerica: this.getPriorityNumber(formData.get('prioridad')),
                 tags: [
                     'formulario-web',
                     formData.get('etiqueta'),
@@ -490,86 +650,187 @@ function initEventListeners() {
                 estado_inicial: 'to do'
             }
         };
+    }
+
+    static getPriorityNumber(prioridad) {
+        const priorityMap = {
+            'urgente': 1,
+            'alta': 2,
+            'media': 3,
+            'baja': 4
+        };
+        return priorityMap[prioridad] || 3;
+    }
+}
+
+// ========== MANEJO DE EVENTOS ==========
+class EventManager {
+    static initEventListeners() {
+        this.initAuthEvents();
+        this.initFormEvents();
+        this.initSearchEvents();
+    }
+
+    static initAuthEvents() {
+        const authBtn = document.getElementById('authBtn');
+        const tokenInput = document.getElementById('tokenInput');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        authBtn.addEventListener('click', () => {
+            const token = tokenInput.value.trim();
+            const errorDiv = document.getElementById('authError');
+
+            if (TokenManager.VALID_TOKENS.includes(token)) {
+                TokenManager.setToken(token);
+                errorDiv.classList.add('hidden');
+                tokenInput.value = '';
+                authenticateUser();
+            } else {
+                errorDiv.textContent = 'Token inválido. Contacta al administrador.';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+
+        tokenInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                authBtn.click();
+            }
+        });
+
+        tokenInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+
+        logoutBtn.addEventListener('click', () => logout());
+    }
+
+    static initFormEvents() {
+        const ticketForm = document.getElementById('ticketForm');
+
+        ticketForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.handleFormSubmit(e);
+        });
+
+        // Validación en tiempo real
+        const formInputs = ticketForm.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => this.attachValidationEvents(input));
+    }
+
+    static async handleFormSubmit(event) {
+        MessageManager.clearMessages();
+
+        if (!FormValidator.validateForm()) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = '❌ Por favor, corrige los errores antes de continuar.';
+            MessageManager.showTemporaryMessage(errorMsg, 5000);
+            return;
+        }
+
+        UIManager.setSubmitLoading(true);
 
         try {
-            await sendViaNetlify(ticketData);
+            const formData = new FormData(event.target);
+            const ticketData = TicketSubmission.createTicketData(formData);
 
-            document.getElementById('successMessage').textContent = '✅ Tu ticket ha sido enviado exitosamente. Te contactaremos pronto.';
-            showTemporaryMessage(document.getElementById('successMessage'), 5000);
+            await TicketSubmission.sendViaNetlify(ticketData);
 
-            document.getElementById('ticketForm').reset();
-            clearValidationErrors();
+            const successMsg = document.getElementById('successMessage');
+            successMsg.textContent = '✅ Tu ticket ha sido enviado exitosamente. Te contactaremos pronto.';
+            MessageManager.showTemporaryMessage(successMsg, 5000);
 
-            // Recargar tickets para mostrar el nuevo
-            setTimeout(() => {
-                // switchTab('portal');
-                loadTickets();
-            }, 2000);
+            event.target.reset();
+            FormValidator.clearValidationErrors();
+
+            // Recargar tickets después de crear uno nuevo
+            setTimeout(() => TicketManager.loadTickets(), 2000);
 
         } catch (error) {
             console.error('Error:', error);
-            document.getElementById('errorMessage').textContent = '❌ Error al procesar el ticket. Por favor, intenta nuevamente.';
-            showTemporaryMessage(document.getElementById('errorMessage'), 5000);
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = '❌ Error al procesar el ticket. Por favor, intenta nuevamente.';
+            MessageManager.showTemporaryMessage(errorMsg, 5000);
         } finally {
-            setLoading(false);
+            UIManager.setSubmitLoading(false);
         }
-    });
+    }
 
-    // Validación en tiempo real
-    document.querySelectorAll('#ticketForm input, #ticketForm select, #ticketForm textarea').forEach(input => {
+    static attachValidationEvents(input) {
         let validationTimeout;
 
         input.addEventListener('input', function() {
             clearTimeout(validationTimeout);
             validationTimeout = setTimeout(() => {
                 if (this.value.trim().length > 0) {
-                    validateField(this.name, this.value);
+                    FormValidator.validateField(this.name, this.value);
                 }
             }, 500);
         });
 
         input.addEventListener('blur', function() {
             if (validationRules[this.name]) {
-                validateField(this.name, this.value);
+                FormValidator.validateField(this.name, this.value);
             }
         });
 
         input.addEventListener('focus', function() {
-            if (this.classList.contains('error')) {
-                this.classList.remove('error');
+            const hasError = this.classList.contains('form__input--error') ||
+                           this.classList.contains('form__select--error') ||
+                           this.classList.contains('form__textarea--error');
+
+            if (hasError) {
+                this.classList.remove('form__input--error', 'form__select--error', 'form__textarea--error');
                 const errorElement = document.getElementById(`${this.name}-error`);
-                if (errorElement) {
-                    errorElement.classList.remove('show');
-                }
+                errorElement?.classList.remove('form__error--show');
             }
         });
-    });
+    }
 
-    // Búsqueda
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchTickets();
-        }
-    });
+    static initSearchEvents() {
+        const searchInput = document.getElementById('searchInput');
 
-    // Solo números en token input
-    document.getElementById('tokenInput').addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '');
-    });
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                TicketManager.searchTickets();
+            }
+        });
+    }
 }
 
-// ========== INICIALIZACIÓN ==========
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎫 Portal Tickets inicializado');
-    console.log('🔐 Sistema de autenticación activado');
+// ========== INICIALIZACIÓN DE LA APLICACIÓN ==========
+class App {
+    static init() {
+        console.log('🎟️ Portal Tickets inicializado - Versión ES6+');
+        console.log('🔐 Sistema de autenticación con JWT habilitado');
 
-    initAuth();
-    initEventListeners();
+        initAuth();
+        EventManager.initEventListeners();
+        this.startAutoRefresh();
+        this.startSessionMonitor();
+    }
 
-    // Auto-reload de tickets cada 30 segundos
-    setInterval(() => {
-        if (isAuthenticated) {
-            loadTickets();
-        }
-    }, 30000);
-});
+    static startAutoRefresh() {
+        // Auto-reload de tickets cada 30 segundos
+        setInterval(() => {
+            if (AppState.isAuthenticated) {
+                TicketManager.loadTickets();
+            }
+        }, 30000);
+    }
+
+    static startSessionMonitor() {
+        // Verificar sesión cada minuto
+        setInterval(() => {
+            if (AppState.isAuthenticated && !TokenManager.isValid()) {
+                TokenManager.logout('Sesión expirada');
+            }
+        }, 60000);
+    }
+}
+
+// Inicializar aplicación cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => App.init());
+
+// Funciones globales para compatibilidad con HTML (mantener para onclick)
+window.switchTab = switchTab;
+window.searchTickets = () => TicketManager.searchTickets();

@@ -10,94 +10,94 @@
     <!-- Auth Modal -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-modal">
-            <img src="./assets/img/logo.png" alt="Logo" class="auth-logo">
-            <h2>🔐 Acceso al Portal</h2>
-            <p>Ingresa tu token para acceder al sistema de tickets</p>
-            <input 
-                type="password" 
-                id="tokenInput" 
-                class="token-input" 
+            <img src="./assets/img/logo.png" alt="Logo" class="logo logo--auth">
+            <h2 class="auth-modal__title">🔐 Acceso al Portal</h2>
+            <p class="auth-modal__description">Ingresa tu token para acceder al sistema de tickets</p>
+            <input
+                type="password"
+                id="tokenInput"
+                class="auth-modal__input"
                 placeholder="000000"
                 pattern="[0-9]{15}"
                 autocomplete="off"
             >
-            <button id="authBtn" class="auth-btn">Acceder</button>
-            <div id="authError" class="auth-error hidden"></div>
+            <button id="authBtn" class="auth-modal__button">Acceder</button>
+            <div id="authError" class="auth-modal__error hidden"></div>
         </div>
     </div>
 
     <!-- Main Container -->
     <div id="mainContainer" class="container">
         <div class="header">
-            <img src="./assets/img/logo.png" alt="Logo" class="header-logo">
-            <h1>🎫 Sistema de Tickets</h1>
-            <p>Portal integrado de soporte y seguimiento</p>
-            <button id="logoutBtn" class="logout-btn">🚪 Cerrar Sesión</button>
+            <img src="./assets/img/logo.png" alt="Logo" class="logo logo--header">
+            <h1 class="header__title">🎫 Sistema de Tickets</h1>
+            <p class="header__subtitle">Portal integrado de soporte y seguimiento</p>
+            <button id="logoutBtn" class="header__logout">🚪 Cerrar Sesión</button>
         </div>
 
-        <nav class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('portal')">
+        <nav class="nav">
+            <button class="nav__tab nav__tab--active" onclick="switchTab('portal')">
                 📋 Mis Tickets
             </button>
-            <button class="nav-tab" onclick="switchTab('form')">
+            <button class="nav__tab" onclick="switchTab('form')">
                 ➕ Crear Ticket
             </button>
         </nav>
 
         <!-- Portal Tab -->
-        <div id="portalTab" class="tab-content active">
-            <div class="search-section">
-                <div class="search-box">
-                    <input 
-                        type="text" 
-                        class="search-input" 
-                        id="searchInput" 
+        <div id="portalTab" class="tab tab--active">
+            <div class="portal__search">
+                <div class="search">
+                    <input
+                        type="text"
+                        class="search__input"
+                        id="searchInput"
                         placeholder="Buscar por ID, título o descripción..."
                     >
-                    <button class="search-btn" onclick="searchTickets()">🔍</button>
+                    <button class="search__button" onclick="searchTickets()">🔍</button>
                 </div>
             </div>
 
-            <div id="loadingMessage" class="loading-center">
+            <div id="loadingMessage" class="loading--center">
                 Cargando tickets...
             </div>
             <div id="ticketsContainer"></div>
-            <div id="portalError" class="error-message-global hidden"></div>
+            <div id="portalError" class="message message--error hidden"></div>
         </div>
 
         <!-- Form Tab -->
-        <div id="formTab" class="tab-content">
-            <div id="successMessage" class="success-message"></div>
-            <div id="errorMessage" class="error-message-global"></div>
+        <div id="formTab" class="tab">
+            <div id="successMessage" class="message message--success"></div>
+            <div id="errorMessage" class="message message--error"></div>
 
             <form id="ticketForm">
-                <div class="form-group">
-                    <label for="titulo">🏷️ Título del Ticket</label>
-                    <input type="text" id="titulo" name="titulo" placeholder="Ej: Problema con la aplicación móvil">
-                    <span class="error-message" id="titulo-error">El título es obligatorio y debe tener al menos 5 caracteres</span>
+                <div class="form__group">
+                    <label for="titulo" class="form__label">🏷️ Título del Ticket</label>
+                    <input type="text" id="titulo" name="titulo" class="form__input" placeholder="Ej: Problema con la aplicación móvil">
+                    <span class="form__error" id="titulo-error">El título es obligatorio y debe tener al menos 5 caracteres</span>
                 </div>
 
-                <div class="form-group">
-                    <label for="descripcion">📝 Descripción Detallada</label>
-                    <textarea id="descripcion" name="descripcion" placeholder="Describe tu problema con el mayor detalle posible. Incluye pasos para reproducir el error si es aplicable."></textarea>
-                    <span class="error-message" id="descripcion-error">La descripción es obligatoria y debe tener al menos 20 caracteres</span>
+                <div class="form__group">
+                    <label for="descripcion" class="form__label">📝 Descripción Detallada</label>
+                    <textarea id="descripcion" name="descripcion" class="form__textarea" placeholder="Describe tu problema con el mayor detalle posible. Incluye pasos para reproducir el error si es aplicable."></textarea>
+                    <span class="form__error" id="descripcion-error">La descripción es obligatoria y debe tener al menos 20 caracteres</span>
                 </div>
 
-                <div class="form-group">
-                    <label for="prioridad">🚨 Prioridad</label>
-                    <select id="prioridad" name="prioridad">
+                <div class="form__group">
+                    <label for="prioridad" class="form__label">🚨 Prioridad</label>
+                    <select id="prioridad" name="prioridad" class="form__select">
                         <option value="">Selecciona una prioridad</option>
                         <option value="baja">🟢 Baja - No es urgente</option>
                         <option value="media">🟡 Media - Necesita atención</option>
                         <option value="alta">🟠 Alta - Requiere pronta solución</option>
                         <option value="urgente">🔴 Urgente - Crítico para el negocio</option>
                     </select>
-                    <span class="error-message" id="prioridad-error">Debes seleccionar una prioridad</span>
+                    <span class="form__error" id="prioridad-error">Debes seleccionar una prioridad</span>
                 </div>
 
-                <div class="form-group">
-                    <label for="etiqueta">🏷️ Tipo de Ticket</label>
-                    <select id="etiqueta" name="etiqueta">
+                <div class="form__group">
+                    <label for="etiqueta" class="form__label">🏷️ Tipo de Ticket</label>
+                    <select id="etiqueta" name="etiqueta" class="form__select">
                         <option value="">Selecciona el tipo</option>
                         <option value="bug">🐛 Error/Bug</option>
                         <option value="feature">✨ Nueva Funcionalidad</option>
@@ -108,10 +108,10 @@
                         <option value="rendimiento">⚡ Rendimiento</option>
                         <option value="otro">📌 Otro</option>
                     </select>
-                    <span class="error-message" id="etiqueta-error">Debes seleccionar un tipo de ticket</span>
+                    <span class="form__error" id="etiqueta-error">Debes seleccionar un tipo de ticket</span>
                 </div>
 
-                <button type="submit" class="submit-btn" id="submitBtn">
+                <button type="submit" class="button button--primary button--submit" id="submitBtn">
                     Crear Ticket
                 </button>
             </form>

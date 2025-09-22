@@ -1,3 +1,79 @@
+/* ========================================
+   CSS Variables (Custom Properties)
+======================================== */
+:root {
+    /* Colores principales */
+    --color-primary: #667eea;
+    --color-secondary: #764ba2;
+    --color-white: #ffffff;
+    --color-black: #000000;
+
+    /* Colores de texto */
+    --text-primary: #2d3748;
+    --text-secondary: #718096;
+    --text-muted: #a0aec0;
+
+    /* Colores de estado */
+    --color-success: #38a169;
+    --color-warning: #dd6b20;
+    --color-error: #e53e3e;
+    --color-info: #3182ce;
+
+    /* Colores de fondo */
+    --bg-primary: #f8fafc;
+    --bg-secondary: #edf2f7;
+    --bg-overlay: rgba(0, 0, 0, 0.8);
+
+    /* Gradientes */
+    --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    --gradient-light: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+
+    /* Espaciado */
+    --spacing-xs: 0.25rem;   /* 4px */
+    --spacing-sm: 0.5rem;    /* 8px */
+    --spacing-md: 1rem;      /* 16px */
+    --spacing-lg: 1.5rem;    /* 24px */
+    --spacing-xl: 2rem;      /* 32px */
+    --spacing-2xl: 3rem;     /* 48px */
+
+    /* Tipografía */
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 2rem;
+    --font-size-4xl: 2.5rem;
+
+    /* Radios de borde */
+    --border-radius-sm: 0.375rem;
+    --border-radius-md: 0.5rem;
+    --border-radius-lg: 0.75rem;
+    --border-radius-xl: 1rem;
+    --border-radius-2xl: 1.25rem;
+
+    /* Sombras */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+    /* Transiciones */
+    --transition-fast: all 0.15s ease;
+    --transition-normal: all 0.3s ease;
+    --transition-slow: all 0.5s ease;
+
+    /* Z-index layers */
+    --z-dropdown: 1000;
+    --z-modal: 2000;
+    --z-tooltip: 3000;
+}
+
+/* ========================================
+   Reset y Base
+======================================== */
 * {
     margin: 0;
     padding: 0;
@@ -5,500 +81,641 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: var(--font-family);
+    background: var(--gradient-primary);
     min-height: 100vh;
-    padding: 20px;
+    padding: var(--spacing-lg);
+    line-height: 1.5;
+    color: var(--text-primary);
 }
 
-/* Auth Modal */
+/* ========================================
+   Componente: Auth Modal (BEM)
+======================================== */
 .auth-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    background: var(--bg-overlay);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: var(--z-modal);
 }
 
 .auth-modal {
-    background: white;
-    border-radius: 20px;
-    padding: 40px;
+    background: var(--color-white);
+    border-radius: var(--border-radius-2xl);
+    padding: var(--spacing-2xl);
     max-width: 400px;
     width: 90%;
     text-align: center;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-xl);
 }
 
-.auth-modal h2 {
-    color: #2d3748;
-    margin-bottom: 10px;
+.auth-modal__title {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-xl);
+    font-weight: 600;
 }
 
-.auth-modal p {
-    color: #718096;
-    margin-bottom: 30px;
+.auth-modal__description {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+    font-size: var(--font-size-base);
 }
 
-.token-input {
+.auth-modal__input {
     width: 100%;
-    padding: 15px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 1.2rem;
+    padding: var(--spacing-md);
+    border: 2px solid var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    font-size: var(--font-size-lg);
     text-align: center;
     letter-spacing: 0.2em;
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-lg);
     text-transform: uppercase;
+    transition: var(--transition-normal);
+    font-family: var(--font-family);
 }
 
-.token-input:focus {
+.auth-modal__input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
-.auth-btn {
+.auth-modal__button {
     width: 100%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    padding: 15px;
+    background: var(--gradient-primary);
+    color: var(--color-white);
+    padding: var(--spacing-md);
     border: none;
-    border-radius: 12px;
-    font-size: 1rem;
+    border-radius: var(--border-radius-lg);
+    font-size: var(--font-size-base);
     font-weight: 600;
     cursor: pointer;
+    transition: var(--transition-normal);
+    font-family: var(--font-family);
 }
 
-.auth-error {
-    color: #e53e3e;
-    margin-top: 15px;
-    font-size: 0.9rem;
+.auth-modal__button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
-/* Logo styles */
-.auth-logo {
+.auth-modal__error {
+    color: var(--color-error);
+    margin-top: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+/* ========================================
+   Componente: Logo (BEM)
+======================================== */
+.logo {
     width: 60px;
     height: 60px;
     object-fit: contain;
     opacity: 0.9;
-    margin-bottom: 15px;
 }
 
-.header-logo {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    opacity: 0.9;
-    margin-bottom: 15px;
+.logo--auth {
+    margin-bottom: var(--spacing-md);
+}
+
+.logo--header {
+    margin-bottom: var(--spacing-md);
     border-radius: 50%;
 }
 
-/* Main Container */
+/* ========================================
+   Componente: Container Principal (BEM)
+======================================== */
 .container {
     max-width: 760px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--gradient-light);
     backdrop-filter: blur(10px);
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius-2xl);
+    box-shadow: var(--shadow-xl);
     overflow: hidden;
     display: none;
+    transition: var(--transition-normal);
 }
 
-.container.show {
+.container--show {
     display: block;
 }
 
-/* Header */
+/* ========================================
+   Componente: Header (BEM)
+======================================== */
 .header {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    padding: 30px;
+    background: var(--gradient-primary);
+    color: var(--color-white);
+    padding: var(--spacing-xl);
     text-align: center;
     position: relative;
 }
 
-.header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
+.header__title {
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--spacing-md);
+    font-weight: 700;
 }
 
-.header p {
-    font-size: 1.1rem;
+.header__subtitle {
+    font-size: var(--font-size-lg);
     opacity: 0.9;
 }
 
-.logout-btn {
+.header__logout {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
     background: rgba(255, 255, 255, 0.2);
-    color: white;
+    color: var(--color-white);
     border: none;
-    padding: 8px 15px;
-    border-radius: 8px;
-    font-size: 0.9rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: var(--transition-normal);
+    font-family: var(--font-family);
 }
 
-.logout-btn:hover {
+.header__logout:hover {
     background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
 }
 
-/* Navigation Tabs */
-.nav-tabs {
+/* ========================================
+   Componente: Navigation Tabs (BEM)
+======================================== */
+.nav {
     display: flex;
-    background: #f8fafc;
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--bg-secondary);
 }
 
-.nav-tab {
+.nav__tab {
     flex: 1;
-    padding: 20px;
+    padding: var(--spacing-lg);
     background: none;
     border: none;
-    font-size: 1rem;
+    font-size: var(--font-size-base);
     font-weight: 600;
-    color: #718096;
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--transition-normal);
     position: relative;
+    font-family: var(--font-family);
 }
 
-.nav-tab.active {
-    color: #667eea;
-    background: white;
+.nav__tab--active {
+    color: var(--color-primary);
+    background: var(--color-white);
 }
 
-.nav-tab.active::after {
+.nav__tab--active::after {
     content: '';
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     height: 3px;
-    background: #667eea;
+    background: var(--color-primary);
 }
 
-.nav-tab:hover:not(.active) {
-    background: #edf2f7;
+.nav__tab:hover:not(.nav__tab--active) {
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
 }
 
-/* Tab Content */
-.tab-content {
+/* ========================================
+   Componente: Tab Content (BEM)
+======================================== */
+.tab {
     display: none;
-    padding: 30px;
+    padding: var(--spacing-xl);
 }
 
-.tab-content.active {
+.tab--active {
     display: block;
 }
 
-/* Portal Styles */
-.search-section {
-    margin-bottom: 30px;
+/* ========================================
+   Componente: Portal Search (BEM)
+======================================== */
+.portal__search {
+    margin-bottom: var(--spacing-xl);
 }
 
-.search-box {
+.search {
     max-width: 500px;
     margin: 0 auto;
     position: relative;
 }
 
-.search-input {
+.search__input {
     width: 100%;
-    padding: 15px 50px 15px 20px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
+    padding: var(--spacing-md) 50px var(--spacing-md) var(--spacing-lg);
+    border: 2px solid var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    font-size: var(--font-size-base);
+    transition: var(--transition-normal);
+    font-family: var(--font-family);
 }
 
-.search-input:focus {
+.search__input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
-.search-btn {
+.search__button {
     position: absolute;
-    right: 10px;
+    right: var(--spacing-md);
     top: 50%;
     transform: translateY(-50%);
-    background: #667eea;
-    color: white;
+    background: var(--color-primary);
+    color: var(--color-white);
     border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: var(--transition-normal);
+    font-family: var(--font-family);
 }
 
-.search-btn:hover {
+.search__button:hover {
     background: #5a6fd8;
+    transform: translateY(-50%) translateY(-1px);
 }
 
+/* ========================================
+   Componente: Ticket Card (BEM)
+======================================== */
 .ticket-card {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
+    background: var(--color-white);
+    border: 1px solid var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-normal);
 }
 
 .ticket-card:hover {
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
 }
 
-.ticket-header {
+.ticket-card__header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-md);
     flex-wrap: wrap;
-    gap: 10px;
+    gap: var(--spacing-md);
 }
 
-.ticket-id {
+.ticket-card__id {
     font-weight: 700;
-    color: #2d3748;
-    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-size: var(--font-size-lg);
 }
 
-.ticket-title {
-    font-size: 1.3rem;
+.ticket-card__title {
+    font-size: var(--font-size-xl);
     font-weight: 600;
-    color: #2d3748;
-    margin: 5px 0;
+    color: var(--text-primary);
+    margin: var(--spacing-xs) 0;
 }
 
+.ticket-card__meta {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.ticket-card__description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+}
+
+.ticket-card__tags {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* ========================================
+   Componente: Status & Priority Badges (BEM)
+======================================== */
 .status-badge {
-    padding: 6px 12px;
+    padding: var(--spacing-xs) var(--spacing-md);
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.status-todo { background: #fed7d7; color: #c53030; }
-.status-progress { background: #fbd38d; color: #dd6b20; }
-.status-done { background: #c6f6d5; color: #38a169; }
+.status-badge--todo {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.status-badge--progress {
+    background: #fbd38d;
+    color: var(--color-warning);
+}
+
+.status-badge--done {
+    background: #c6f6d5;
+    color: var(--color-success);
+}
 
 .priority-badge {
-    padding: 4px 10px;
+    padding: var(--spacing-xs) var(--spacing-md);
     border-radius: 15px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
 }
 
-.priority-1 { background: #fed7d7; color: #c53030; }
-.priority-2 { background: #fbd38d; color: #dd6b20; }
-.priority-3 { background: #bee3f8; color: #3182ce; }
-.priority-4 { background: #c6f6d5; color: #38a169; }
+.priority-badge--priority-1 {
+    background: #fed7d7;
+    color: #c53030;
+}
 
-.ticket-meta {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
+.priority-badge--priority-2 {
+    background: #fbd38d;
+    color: var(--color-warning);
+}
+
+.priority-badge--priority-3 {
+    background: #bee3f8;
+    color: var(--color-info);
+}
+
+.priority-badge--priority-4 {
+    background: #c6f6d5;
+    color: var(--color-success);
 }
 
 .ticket-meta-item {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.9rem;
-    color: #718096;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
 }
 
-.ticket-description {
-    color: #4a5568;
-    line-height: 1.6;
-    margin-bottom: 15px;
-}
-
-.ticket-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+.ticket-meta-item__icon {
+    font-size: var(--font-size-base);
 }
 
 .ticket-tag {
-    background: #edf2f7;
-    color: #4a5568;
-    padding: 4px 8px;
-    border-radius: 8px;
-    font-size: 0.75rem;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-xs);
     font-weight: 500;
 }
 
-/* Form Styles */
-.form-group {
-    margin-bottom: 30px;
+/* ========================================
+   Componente: Portal No Tickets (BEM)
+======================================== */
+.portal__no-tickets {
+    text-align: center;
+    padding: var(--spacing-2xl) var(--spacing-lg);
+    color: var(--text-secondary);
+}
+
+.portal__no-tickets h3 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
+}
+
+.portal__no-tickets p {
+    font-size: var(--font-size-base);
+}
+
+/* ========================================
+   Componente: Form (BEM)
+======================================== */
+.form__group {
+    margin-bottom: var(--spacing-xl);
     position: relative;
 }
 
-.form-group label {
+.form__label {
     display: block;
-    margin-bottom: 8px;
-    color: #2d3748;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
+.form__input,
+.form__select,
+.form__textarea {
     width: 100%;
-    padding: 15px 20px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background: #f8fafc;
-    color: #2d3748;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: 2px solid var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    font-size: var(--font-size-base);
+    transition: var(--transition-normal);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-family);
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.form__input:focus,
+.form__select:focus,
+.form__textarea:focus {
     outline: none;
-    border-color: #667eea;
-    background: #fff;
+    border-color: var(--color-primary);
+    background: var(--color-white);
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
     transform: translateY(-2px);
 }
 
-.form-group input.error,
-.form-group select.error,
-.form-group textarea.error {
-    border-color: #ef4444;
+.form__input--error,
+.form__select--error,
+.form__textarea--error {
+    border-color: var(--color-error);
     background: #fef2f2;
     animation: shake 0.5s ease-in-out;
 }
 
-.form-group input.success,
-.form-group select.success,
-.form-group textarea.success {
-    border-color: #10b981;
+.form__input--success,
+.form__select--success,
+.form__textarea--success {
+    border-color: var(--color-success);
     background: #f0fdf4;
 }
 
-.form-group textarea {
+.form__textarea {
     resize: vertical;
     min-height: 120px;
-    font-family: inherit;
 }
 
-.form-group select {
+.form__select {
     cursor: pointer;
     appearance: none;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 12px center;
+    background-position: right var(--spacing-lg) center;
     background-repeat: no-repeat;
     background-size: 16px;
     padding-right: 50px;
 }
 
-.error-message {
+/* ========================================
+   Componente: Form Error Messages (BEM)
+======================================== */
+.form__error {
     display: block;
-    color: #ef4444;
-    font-size: 0.85rem;
+    color: var(--color-error);
+    font-size: var(--font-size-sm);
     font-weight: 500;
-    margin-top: 6px;
-    margin-left: 2px;
+    margin-top: var(--spacing-xs);
+    margin-left: var(--spacing-xs);
     line-height: 1.3;
     opacity: 0;
     transform: translateY(-5px);
-    transition: all 0.3s ease;
+    transition: var(--transition-normal);
 }
 
-.error-message.show {
+.form__error--show {
     opacity: 1;
     transform: translateY(0);
 }
 
-.error-message::before {
+.form__error::before {
     content: "⚠️ ";
-    margin-right: 4px;
+    margin-right: var(--spacing-xs);
 }
 
+/* ========================================
+   Componente: Buttons (BEM)
+======================================== */
+.button {
+    padding: var(--spacing-md) var(--spacing-xl);
+    border: none;
+    border-radius: var(--border-radius-lg);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-normal);
+    font-family: var(--font-family);
+}
+
+.button--primary {
+    background: var(--gradient-primary);
+    color: var(--color-white);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.button--primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.button--primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.button--submit {
+    width: 100%;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    font-size: var(--font-size-lg);
+    margin-top: var(--spacing-lg);
+}
+
+/* ========================================
+   Componente: Messages (BEM)
+======================================== */
+.message {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+    font-weight: 600;
+    display: none;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.message--success {
+    background: #c6f6d5;
+    border: 1px solid #9ae6b4;
+    color: #22543d;
+}
+
+.message--error {
+    background: #fecaca;
+    border: 1px solid #f87171;
+    color: #991b1b;
+}
+
+/* ========================================
+   Componente: Loading (BEM)
+======================================== */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--color-white);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: var(--spacing-md);
+}
+
+.loading--center {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--text-secondary);
+}
+
+.loading--center::after {
+    content: '';
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--bg-secondary);
+    border-top: 3px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-top: var(--spacing-lg);
+}
+
+/* ========================================
+   Animaciones
+======================================== */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-5px); }
     75% { transform: translateX(5px); }
 }
 
-.submit-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 18px 30px;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 20px;
-}
-
-.submit-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-}
-
-.submit-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.success-message,
-.error-message-global {
-    padding: 15px 20px;
-    border-radius: 12px;
-    margin-bottom: 25px;
-    text-align: center;
-    font-weight: 600;
-    display: none;
-}
-
-.success-message {
-    background: #c6f6d5;
-    border: 1px solid #9ae6b4;
-    color: #22543d;
-}
-
-.error-message-global {
-    background: #fecaca;
-    border: 1px solid #f87171;
-    color: #991b1b;
-}
-
-.loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid transparent;
-    border-top: 2px solid #ffffff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-right: 10px;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes spin {
@@ -506,65 +723,77 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-.loading-center {
-    text-align: center;
-    padding: 40px;
-    color: #718096;
-}
-
-.loading-center::after {
-    content: '';
-    width: 30px;
-    height: 30px;
-    border: 3px solid #e2e8f0;
-    border-top: 3px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    display: inline-block;
-    margin-top: 20px;
-}
-
-.no-tickets {
-    text-align: center;
-    padding: 60px 20px;
-    color: #718096;
-}
-
-.no-tickets h3 {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-}
-
+/* ========================================
+   Utilidades
+======================================== */
 .hidden {
     display: none !important;
 }
 
+.show {
+    display: block !important;
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    border: 0 !important;
+}
+
+/* ========================================
+   Responsive Design
+======================================== */
 @media (max-width: 768px) {
+    :root {
+        --spacing-xl: 1.5rem;
+        --spacing-2xl: 2rem;
+        --font-size-4xl: 1.875rem;
+    }
+
     .container {
-        margin: 10px;
-        border-radius: 15px;
+        margin: var(--spacing-md);
+        border-radius: var(--border-radius-xl);
     }
 
     .header {
-        padding: 20px;
+        padding: var(--spacing-lg);
     }
 
-    .header h1 {
-        font-size: 2rem;
+    .header__title {
+        font-size: var(--font-size-3xl);
     }
 
-    .tab-content {
-        padding: 20px;
+    .tab {
+        padding: var(--spacing-lg);
     }
 
-    .nav-tab {
-        padding: 15px 10px;
-        font-size: 0.9rem;
+    .nav__tab {
+        padding: var(--spacing-md) var(--spacing-md);
+        font-size: var(--font-size-sm);
     }
 
-    .logout-btn {
+    .header__logout {
         position: static;
-        margin-top: 20px;
+        margin-top: var(--spacing-lg);
         width: 100%;
+    }
+
+    .ticket-card__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .search {
+        max-width: 100%;
+    }
+
+    .auth-modal {
+        margin: var(--spacing-lg);
+        width: calc(100% - 2rem);
     }
 }
