@@ -531,7 +531,6 @@
                 id="tokenInput" 
                 class="token-input" 
                 placeholder="000000"
-                maxlength="6"
                 pattern="[0-9]{15}"
                 autocomplete="off"
             >
@@ -703,12 +702,6 @@
         document.getElementById('authBtn').addEventListener('click', function() {
             const token = document.getElementById('tokenInput').value.trim();
             const errorDiv = document.getElementById('authError');
-            
-            if (!token || token.length !== 6) {
-                errorDiv.textContent = 'El token debe tener 6 dígitos';
-                errorDiv.style.display = 'block';
-                return;
-            }
 
             if (CONFIG.validTokens.includes(token)) {
                 localStorage.setItem('ticketPortalToken', btoa(token));
