@@ -669,7 +669,7 @@
 
         // ========== AUTENTICACIÓN ==========
         function initAuth() {
-            const savedToken = localStorage.getItem('ticketPortalToken');
+            const savedToken = atob(localStorage.getItem('ticketPortalToken'));
             if (savedToken && CONFIG.validTokens.includes(savedToken)) {
                 authenticateUser();
             } else {
@@ -711,7 +711,7 @@
             }
 
             if (CONFIG.validTokens.includes(token)) {
-                localStorage.setItem('ticketPortalToken', token);
+                localStorage.setItem('ticketPortalToken', btoa(token));
                 errorDiv.style.display = 'none';
                 document.getElementById('tokenInput').value = '';
                 authenticateUser();
@@ -1132,7 +1132,7 @@
                 
                 // Recargar tickets para mostrar el nuevo
                 setTimeout(() => {
-                    switchTab('portal');
+                    // switchTab('portal');
                     loadTickets();
                 }, 2000);
                 
