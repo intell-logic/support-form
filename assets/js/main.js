@@ -786,13 +786,13 @@ class EventManager {
             // 1. Recargar tickets inmediatamente
             await TicketManager.loadTickets();
 
-            // 2. Cambiar al tab "Mis Tickets"
-            switchTab('portal');
-
             // 3. Mostrar mensaje de éxito que desaparezca a los 3 segundos
             const successMsg = document.getElementById('portalSuccessMessage');
             successMsg.textContent = '✅ Tu ticket ha sido enviado exitosamente. Te contactaremos pronto.';
-            MessageManager.showTemporaryMessage(successMsg, 5000);
+            MessageManager.showTemporaryMessage(successMsg, 3000);
+
+            // 2. Cambiar al tab "Mis Tickets"
+            switchTab('portal');
         } catch (error) {
             console.error('Error:', error);
             const errorMsg = document.getElementById('errorMessage');
