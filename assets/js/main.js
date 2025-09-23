@@ -792,7 +792,9 @@ class EventManager {
             // 3. Mostrar mensaje de éxito que desaparezca a los 3 segundos
             const successMsg = document.getElementById('portalSuccessMessage');
             successMsg.textContent = '✅ Tu ticket ha sido enviado exitosamente. Te contactaremos pronto.';
-            MessageManager.showTemporaryMessage(successMsg, 3000);
+            setTimeout(() => {
+                MessageManager.showTemporaryMessage(successMsg, 3000);
+            }, 1000);
 
         } catch (error) {
             console.error('Error:', error);
