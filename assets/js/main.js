@@ -186,8 +186,17 @@ class TabManager {
 }
 
 // Función global para compatibilidad con HTML
-const switchTab = (tabName) => {
-    TabManager.switchTab(tabName, event.target);
+const switchTab = (tabName, targetElement = null) => {
+    // Si no hay targetElement, buscar el tab correspondiente
+    if (!targetElement) {
+        targetElement = document.querySelector(`[onclick*="switchTab('${tabName}')"]`);
+        if (!targetElement) {
+            // Fallback: encontrar el botón nav correcto
+            const navButtons = document.querySelectorAll('.nav__tab');
+            targetElement = navButtons[tabName === 'portal' ? 0 : 1] || navButtons[0];
+        }
+    }
+    TabManager.switchTab(tabName, targetElement);
 };
 
 // ========== GESTIÓN DE TICKETS MODERNA ==========
@@ -457,7 +466,7 @@ class UIManager {
 // ========== GESTIÓN DE MENSAJES ==========
 class MessageManager {
     static clearMessages() {
-        const elements = ['successMessage', 'errorMessage'];
+        const elements = ['successMessage', 'errorMessage', 'portalSuccessMessage'];
         elements.forEach(id => {
             const element = document.getElementById(id);
             if (element) {
@@ -572,10 +581,47 @@ class FormValidator {
 
 // ========== GESTIÓN DE TICKETS (ENVIO) ==========
 class TicketSubmission {
+    static COUNTER_KEY = 'ticketCounter';
+
     static generateTicketId() {
-        const timestamp = Date.now();
-        const random = Math.random().toString(36).substring(2, 5);
-        return `TICKET-${timestamp}-${random}`.toUpperCase();
+        // Generar ID basado en timestamp para garantizar unicidad global
+        const now = Date.now();
+
+        // Usar los últimos 8 dígitos del timestamp + 2 dígitos random
+        // Esto nos da aproximadamente 3 años de unicidad con formato corto
+        const timestampSuffix = now.toString().slice(-8); // últimos 8 dígitos
+        const randomSuffix = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+
+        // Formato: TICKET-XXXXXXXXXX (10 dígitos total)
+        // Ejemplo: TICKET-7654321012 donde 76543210 es del timestamp y 12 es random
+        const ticketId = `TICKET-${timestampSuffix}${randomSuffix}`;
+
+        // Opcional: verificar que no se genere el mismo ID en la misma milésima de segundo
+        const lastId = this.getLastGeneratedId();
+        if (lastId === ticketId) {
+            // Si por alguna razón se genera el mismo ID, agregar 1 al random
+            const newRandom = ((parseInt(randomSuffix) + 1) % 100).toString().padStart(2, '0');
+            return `TICKET-${timestampSuffix}${newRandom}`;
+        }
+
+        this.setLastGeneratedId(ticketId);
+        return ticketId;
+    }
+
+    static getLastGeneratedId() {
+        try {
+            return localStorage.getItem('lastTicketId') || '';
+        } catch {
+            return '';
+        }
+    }
+
+    static setLastGeneratedId(id) {
+        try {
+            localStorage.setItem('lastTicketId', id);
+        } catch {
+            // Ignorar si no se puede guardar
+        }
     }
 
     static async sendViaNetlify(ticketData) {
@@ -744,7 +790,7 @@ class EventManager {
             switchTab('portal');
 
             // 3. Mostrar mensaje de éxito que desaparezca a los 3 segundos
-            const successMsg = document.getElementById('successMessage');
+            const successMsg = document.getElementById('portalSuccessMessage');
             successMsg.textContent = '✅ Tu ticket ha sido enviado exitosamente. Te contactaremos pronto.';
             MessageManager.showTemporaryMessage(successMsg, 3000);
 
